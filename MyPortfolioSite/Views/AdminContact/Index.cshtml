@@ -1,0 +1,45 @@
+﻿@model List<MyPortfolioSite.Models.ContactMessage>
+@{
+    Layout = null; ViewData["Title"] = "Mesajlar - Yönetim";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <partial name="_Background" />
+    <partial name="_AdminNav" />
+    <div class="container admin-wrap">
+        <h1 class="h3 mb-3">Mesajlar</h1>
+
+        @if (!Model.Any())
+        {
+            <p class="opacity-75">Henüz mesaj yok.</p>
+        }
+
+        @foreach (var m in Model)
+        {
+            <div class="admin-msg @(m.IsRead ? "" : "unread")">
+                <div class="d-flex justify-content-between flex-wrap gap-2">
+                    <div>
+                        <strong>@m.Name</strong>
+                        <a href="mailto:@m.Email" class="ms-2">@m.Email</a>
+                    </div>
+                    <small class="opacity-75">@m.CreatedAt.ToLocalTime().ToString("d MMM yyyy HH:mm")</small>
+                </div>
+                <p class="my-2" style="white-space:pre-wrap">@m.Message</p>
+                <div class="d-flex gap-2">
+                    <form method="post" asp-action="ToggleRead" asp-route-id="@m.Id">
+                        <button type="submit" class="btn btn-sm btn-outline-light">@(m.IsRead ? "Okunmadı yap" : "Okundu yap")</button>
+                    </form>
+                    <form method="post" asp-action="Delete" asp-route-id="@m.Id"
+                          onsubmit="return confirm('Bu mesaj silinsin mi?')">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</body>
+</html>

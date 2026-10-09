@@ -1,0 +1,14 @@
+﻿@inject MyPortfolioSite.Context.AppDbContext Db
+@{
+    var unread = Db.Messages.Count(m => !m.IsRead);
+}
+<nav class="admin-nav">
+    <div class="container">
+        <a href="/">Siteye dön</a>
+        <a asp-controller="AdminProject" asp-action="Index">Projeler</a>
+        <a asp-controller="AdminContact" asp-action="Index">Mesajlar@(unread > 0 ? $" ({unread})" : "")</a>
+        <form method="post" asp-controller="Account" asp-action="Logout" class="ms-auto">
+            <button type="submit">Çıkış</button>
+        </form>
+    </div>
+</nav>

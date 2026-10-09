@@ -1,0 +1,68 @@
+﻿@model List<MyPortfolioSite.Models.Project>
+@{
+    Layout = null; ViewData["Title"] = "Projeler - Yönetim";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <partial name="_Background" />
+    <partial name="_AdminNav" />
+    <div class="container admin-wrap">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <h1 class="h3 m-0">Projeler</h1>
+            <form method="post" asp-action="Refresh">
+                <button type="submit" class="btn btn-outline-light btn-sm">GitHub'dan yenile</button>
+            </form>
+        </div>
+
+        @if (TempData["Ok"] is string ok)
+        {
+            <div class="contact-alert ok">@ok</div>
+        }
+
+        <div class="table-responsive">
+            <table class="table admin-table align-middle">
+                <thead><tr><th>Proje</th><th>Durum</th><th>Sıra</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var p in Model.OrderByDescending(x => x.IsFeatured).ThenBy(x => x.SortOrder))
+                    {
+                        <tr>
+                            <td data-label="Proje">
+                                <strong>@p.Title</strong>
+                                @if (p.CustomTitle != null)
+                                {
+                                    <div class="small opacity-75">repo: @p.Name</div>
+                                }
+                            </td>
+                            <td data-label="Durum">
+                                @if (p.IsHidden)
+                                {
+                                    <span class="tag">Gizli</span>
+                                }
+                                @if (p.IsFeatured)
+                                {
+                                    <span class="tag lang">Öne çıkan</span>
+                                }
+                                @if (!p.IsHidden && !p.IsFeatured)
+                                {
+                                    <span class="opacity-75">Normal</span>
+                                }
+                            </td>
+                            <td data-label="Sıra">@p.SortOrder</td>
+                            <td class="text-end actions">
+                                <a class="btn btn-sm btn-accent" asp-action="Edit" asp-route-name="@p.Name">Düzenle</a>
+                                <form method="post" asp-action="ToggleHidden" asp-route-name="@p.Name" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-light">@(p.IsHidden ? "Göster" : "Gizle")</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

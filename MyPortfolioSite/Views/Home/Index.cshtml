@@ -1,0 +1,149 @@
+﻿@model List<MyPortfolioSite.Models.Project>
+@{
+    Layout = null;
+    ViewData["Title"] = "Projelerim";
+    int currentPage = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <partial name="_Background" />
+    <partial name="_Navbar" />
+
+    <div class="container">
+
+        <!-- HAKKIMDA -->
+        <section class="about-section" id="hakkimda">
+            <div class="about-card">
+                <span class="about-badge">Yazılım Geliştirici</span>
+                <h1><span class="grad-text">Rüzgar Mehmet Deniz</span></h1>
+                <p>
+                    Yeni teknolojilere, yazılıma ve modern geliştirme araçlarına meraklı bir yazılımcıyım.
+                    ASP.NET Core, .NET MAUI ve ML.NET gibi teknolojilerle web ve mobil uygulamalar geliştiriyor,
+                    katmanlı mimari, mikroservisler ve temiz kod üzerine kendimi geliştiriyorum.
+                    Fikirleri çalışan, kullanışlı ve şık ürünlere dönüştürmeyi seviyorum.
+                </p>
+
+                <div class="social-links">
+                    <a href="https://www.linkedin.com/in/r%C3%BCzgar-deniz-25368437a/" target="_blank" rel="noopener" class="social-btn linkedin">
+                        <i class="bi bi-linkedin"></i> LinkedIn
+                    </a>
+                    <a href="https://github.com/RuzgarMehmetDeniz" target="_blank" rel="noopener" class="social-btn github">
+                        <i class="bi bi-github"></i> GitHub
+                    </a>
+                    <a href="https://www.instagram.com/ruzgardeni_z/?hl=tr" target="_blank" rel="noopener" class="social-btn instagram">
+                        <i class="bi bi-instagram"></i> Instagram
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJELER -->
+        <div class="page-hero" id="projeler">
+            <h2 class="section-title">Projelerim</h2>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var p in Model)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+                    <a class="project-card" asp-controller="Projects" asp-action="Detail" asp-route-id="@p.Name">
+                        <div class="project-thumb">
+                            @if (!string.IsNullOrEmpty(p.ShownCover))
+                            {
+                                <img src="@p.ShownCover" loading="lazy" alt="@p.Title">
+                            }
+                            else
+                            {
+                                <div class="thumb-placeholder"><i class="bi bi-code-slash"></i></div>
+                            }
+                            @if (!string.IsNullOrEmpty(p.Language))
+                            {
+                                <span class="project-lang">@p.Language</span>
+                            }
+                        </div>
+                        <div class="project-body">
+                            <h5 class="project-title">@p.Title</h5>
+                            <p class="project-desc">@(p.ShownDescription ?? "Açıklama eklenmemiş.")</p>
+                            <span class="project-more">Detayları gör <i class="bi bi-arrow-right"></i></span>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Sayfalama">
+                <ul class="pager">
+                    <li class="@(currentPage == 1 ? "disabled" : "")">
+                        <a class="pager-btn" asp-controller="Home" asp-action="Index" asp-route-page="@(currentPage - 1)">
+                            <i class="bi bi-chevron-left"></i> Önceki
+                        </a>
+                    </li>
+
+                    @{
+                        int? last = null;
+                        for (int i = 1; i <= totalPages; i++)
+                        {
+                            bool show = i == 1 || i == totalPages || Math.Abs(i - currentPage) <= 1;
+                            if (!show) continue;
+
+                            if (last.HasValue && i - last.Value > 1)
+                            {
+                                <li class="dots">…</li>
+                            }
+
+                            <li class="@(i == currentPage ? "active" : "")">
+                                <a class="pager-btn" asp-controller="Home" asp-action="Index" asp-route-page="@i">@i</a>
+                            </li>
+                            last = i;
+                        }
+                    }
+
+                    <li class="@(currentPage == totalPages ? "disabled" : "")">
+                        <a class="pager-btn" asp-controller="Home" asp-action="Index" asp-route-page="@(currentPage + 1)">
+                            Sonraki <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+
+        <!-- İLETİŞİM -->
+        <section class="contact-section" id="iletisim">
+            <h2 class="section-title">İletişim</h2>
+            <p>Bir fikrin ya da sorun mu var? Aşağıdan bana yazabilirsin.</p>
+
+            @if (TempData["ContactOk"] is string ok)
+            {
+                <div class="contact-alert ok">@ok</div>
+            }
+            @if (TempData["ContactError"] is string err)
+            {
+                <div class="contact-alert err">@err</div>
+            }
+
+            <form class="contact-form" method="post" asp-controller="Contact" asp-action="Send">
+                <input name="Name" placeholder="Adın" maxlength="80" required>
+                <input name="Email" type="email" placeholder="E-posta adresin" maxlength="120" required>
+                <textarea name="Message" rows="5" placeholder="Mesajın" maxlength="2000" required></textarea>
+
+                <!-- Bot tuzağı: insanlar görmez -->
+                <input name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+
+                <button type="submit" class="btn btn-accent btn-pill">Gönder</button>
+            </form>
+        </section>
+
+    </div>
+    <partial name="_Footer" />
+    <partial name="_Chatbot" />
+
+    <partial name="_Scripts" />
+</body>
+</html>

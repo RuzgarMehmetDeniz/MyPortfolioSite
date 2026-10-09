@@ -1,0 +1,106 @@
+﻿@model MyPortfolioSite.Models.Project
+@{
+    Layout = null;
+    ViewData["Title"] = Model.Title;
+    var readme = ViewBag.Readme as string;
+    var images = ViewBag.Images as List<string> ?? new List<string>();
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <partial name="_Background" />
+    <partial name="_Navbar" />
+
+    <div class="container">
+        <a asp-controller="Home" asp-action="Index" class="back-link">
+            <i class="bi bi-arrow-left"></i> Tüm projeler
+        </a>
+
+        <h1 class="detail-title mt-3 mb-2">@Model.Title</h1>
+        <p class="detail-desc">@Model.ShownDescription</p>
+
+        <div class="mb-3">
+            @if (!string.IsNullOrEmpty(Model.Language))
+            {
+                <span class="tag lang">@Model.Language</span>
+            }
+            @foreach (var t in Model.Topics)
+            {
+                <span class="tag">@t</span>
+            }
+        </div>
+
+        @if (images.Any())
+        {
+            <div class="gallery">
+                <button type="button" id="galleryPrev" class="gallery-btn prev" aria-label="Önceki görsel">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <div class="gallery-track" id="galleryTrack">
+                    @foreach (var img in images)
+                    {
+                        <a class="gallery-item" href="@img" target="_blank" rel="noopener">
+                            <img src="@img" loading="lazy" alt="@Model.Title ekran görüntüsü">
+                        </a>
+                    }
+                </div>
+
+                <button type="button" id="galleryNext" class="gallery-btn next" aria-label="Sonraki görsel">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(readme))
+        {
+            <h2 class="h5 fw-bold mt-4 mb-3">Proje hakkında</h2>
+            <div class="readme-box">@readme</div>
+        }
+
+        <div class="mt-4 mb-5 d-flex gap-2 flex-wrap">
+            <a class="btn btn-accent btn-pill" asp-action="Show" asp-route-id="@Model.Name">
+                <i class="bi bi-play-circle me-1"></i> Projeyi göster
+            </a>
+            <a class="btn btn-outline-dark btn-pill" href="@Model.HtmlUrl" target="_blank" rel="noopener">
+                <i class="bi bi-github me-1"></i> GitHub
+            </a>
+        </div>
+    </div>
+    <partial name="_Footer" />
+    <partial name="_Chatbot" />
+
+    <partial name="_Scripts" />
+
+    <script>
+        (function () {
+            var track = document.getElementById('galleryTrack');
+            if (!track) return;
+
+            var prev = document.getElementById('galleryPrev');
+            var next = document.getElementById('galleryNext');
+
+            function step() { return Math.max(track.clientWidth * 0.8, 220); }
+
+            function update() {
+                prev.disabled = track.scrollLeft <= 2;
+                next.disabled = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2;
+            }
+
+            prev.addEventListener('click', function () {
+                track.scrollBy({ left: -step(), behavior: 'smooth' });
+            });
+            next.addEventListener('click', function () {
+                track.scrollBy({ left: step(), behavior: 'smooth' });
+            });
+
+            track.addEventListener('scroll', update, { passive: true });
+            window.addEventListener('resize', update);
+            update();
+        })();
+    </script>
+</body>
+</html>

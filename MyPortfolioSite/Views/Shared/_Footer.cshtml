@@ -1,0 +1,10 @@
+﻿@using System.Globalization
+@{
+    var today = DateTime.Now.ToString("d MMMM yyyy", new CultureInfo("tr-TR"));
+}
+<footer class="site-footer">
+    <div class="container">
+        <span>Geliştirici: <strong>Rüzgar Mehmet Deniz </strong></span>
+        <span>@today</span>
+    </div>
+</footer>

@@ -1,0 +1,196 @@
+﻿<div class="bg-blob b1"></div>
+<div class="bg-blob b2"></div>
+<div class="bg-blob b3"></div>
+<canvas id="bgCanvas"></canvas>
+
+<script>
+    (function () {
+        var canvas = document.getElementById('bgCanvas');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+       var reduce = false;
+
+        var W, H, dots = [];
+        var mouse = { x: -9999, y: -9999, active: false };
+        var LINK = 110;        // nesneler arası çizgi mesafesi
+        var PULL = 220;        // farenin çekim yarıçapı
+
+        function resize() {
+            var dpr = window.devicePixelRatio || 1;
+            W = window.innerWidth;
+            H = window.innerHeight;
+            canvas.width = W * dpr;
+            canvas.height = H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            var count = Math.min(220, Math.floor((W * H) / 7000));
+            dots = [];
+            for (var i = 0; i < count; i++) {
+                var bvx = (Math.random() - 0.5) * 0.9;
+                var bvy = (Math.random() - 0.5) * 0.9;
+                // çok yavaş kalanlar olmasın, hep hareket etsinler
+                if (Math.abs(bvx) < 0.15) bvx = bvx < 0 ? -0.15 : 0.15;
+                if (Math.abs(bvy) < 0.15) bvy = bvy < 0 ? -0.15 : 0.15;
+                dots.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    bvx: bvx, bvy: bvy,   // sürekli hareket hızı
+                    vx: bvx, vy: bvy,
+                    r: Math.random() * 2.5 + 1
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+
+            for (var i = 0; i < dots.length; i++) {
+                var a = dots[i];
+
+                if (!reduce) {
+                    // Normal hıza geri dön (hiç durmasınlar)
+                    a.vx += (a.bvx - a.vx) * 0.03;
+                    a.vy += (a.bvy - a.vy) * 0.03;
+
+                    // Fare yakınsa: fareye doğru çekil + etrafında dön
+                    if (mouse.active) {
+                        var dx = mouse.x - a.x, dy = mouse.y - a.y;
+                        var d = Math.sqrt(dx * dx + dy * dy);
+                        if (d < PULL && d > 1) {
+                            var f = (1 - d / PULL);
+                            var nx = dx / d, ny = dy / d;
+                            // çekim
+                            a.vx += nx * f * 0.35;
+                            a.vy += ny * f * 0.35;
+                            // yörünge (teğet) hareketi
+                            a.vx += -ny * f * 0.25;
+                            a.vy +=  nx * f * 0.25;
+                            // çok yaklaşınca hafif it, üst üste binmesin
+                            if (d < 35) {
+                                a.vx -= nx * 0.4;
+                                a.vy -= ny * 0.4;
+                            }
+                        }
+                    }
+
+                    // hız sınırı
+                    var sp = Math.sqrt(a.vx * a.vx + a.vy * a.vy);
+                    if (sp > 3) { a.vx = a.vx / sp * 3; a.vy = a.vy / sp * 3; }
+
+                    a.x += a.vx;
+                    a.y += a.vy;
+
+                    // Kenardan çıkan karşı taraftan girsin (sürekli akış)
+                    if (a.x < -10) a.x = W + 10;
+                    if (a.x > W + 10) a.x = -10;
+                    if (a.y < -10) a.y = H + 10;
+                    if (a.y > H + 10) a.y = -10;
+                }
+
+                // Nokta
+                ctx.beginPath();
+                ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(165, 180, 252, 0.9)';
+                ctx.fill();
+
+                // Nesneler arası çizgiler
+                for (var j = i + 1; j < dots.length; j++) {
+                    var b = dots[j];
+                    var ddx = a.x - b.x, ddy = a.y - b.y;
+                    var dd = Math.sqrt(ddx * ddx + ddy * ddy);
+                    if (dd < LINK) {
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        ctx.lineTo(b.x, b.y);
+                        ctx.strokeStyle = 'rgba(129, 140, 248,' + (0.3 * (1 - dd / LINK)) + ')';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+
+                // Fareye bağlanan çizgiler (birleşme efekti)
+                if (mouse.active) {
+                    var mx = mouse.x - a.x, my = mouse.y - a.y;
+                    var md = Math.sqrt(mx * mx + my * my);
+                    if (md < PULL) {
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        ctx.lineTo(mouse.x, mouse.y);
+                        ctx.strokeStyle = 'rgba(244, 114, 182,' + (0.55 * (1 - md / PULL)) + ')';
+                        ctx.lineWidth = 1.2;
+                        ctx.stroke();
+                    }
+                }
+            }
+
+            // Farenin kendisinde küçük bir parıltı
+            if (mouse.active) {
+                var g = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 60);
+                g.addColorStop(0, 'rgba(244, 114, 182, 0.35)');
+                g.addColorStop(1, 'rgba(244, 114, 182, 0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 60, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        function setMouse(x, y) { mouse.x = x; mouse.y = y; mouse.active = true; }
+
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', function (e) { setMouse(e.clientX, e.clientY); });
+        window.addEventListener('touchmove', function (e) {
+            if (e.touches.length) setMouse(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: true });
+        document.addEventListener('mouseleave', function () { mouse.active = false; });
+        window.addEventListener('touchend', function () { mouse.active = false; });
+
+        resize();
+        draw();
+    })();
+</script>
+<script>
+    (function () {
+        // Sadece fareli cihazlarda çalışsın (telefonda yok)
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+        document.documentElement.classList.add('has-cursor');
+
+        var dot = document.createElement('div');
+        dot.className = 'cursor-dot';
+        var ring = document.createElement('div');
+        ring.className = 'cursor-ring';
+        document.body.appendChild(dot);
+        document.body.appendChild(ring);
+
+        var mx = -100, my = -100, rx = -100, ry = -100;
+
+        window.addEventListener('mousemove', function (e) {
+            mx = e.clientX;
+            my = e.clientY;
+            dot.style.transform = 'translate(' + mx + 'px,' + my + 'px) translate(-50%,-50%)';
+            document.body.classList.remove('cursor-hidden');
+        });
+
+        // Halka noktayı yumuşakça takip eder
+        function follow() {
+            rx += (mx - rx) * 0.18;
+            ry += (my - ry) * 0.18;
+            ring.style.transform = 'translate(' + rx + 'px,' + ry + 'px) translate(-50%,-50%)';
+            requestAnimationFrame(follow);
+        }
+        follow();
+
+        document.addEventListener('mouseover', function (e) {
+            var hit = e.target.closest('a, button, .project-card, .social-btn, .gallery-btn');
+            ring.classList.toggle('hover', !!hit);
+        });
+
+        window.addEventListener('mousedown', function () { ring.classList.add('down'); });
+        window.addEventListener('mouseup', function () { ring.classList.remove('down'); });
+        document.addEventListener('mouseleave', function () { document.body.classList.add('cursor-hidden'); });
+        document.addEventListener('mouseenter', function () { document.body.classList.remove('cursor-hidden'); });
+    })();
+</script>

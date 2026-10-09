@@ -1,0 +1,185 @@
+﻿<button type="button" id="chatToggle" class="chat-toggle" aria-label="Asistanı aç">
+    <i class="bi bi-chat-dots-fill"></i>
+</button>
+
+<div id="chatPanel" class="chat-panel" hidden>
+    <div class="chat-head">
+        <strong>Proje asistanı</strong>
+        <button type="button" id="chatClose" aria-label="Kapat">✕</button>
+    </div>
+    <div id="chatLog" class="chat-log" aria-live="polite">
+        <div class="chat-msg bot">Merhaba! Projelerim hakkında bana soru sorabilirsin.</div>
+    </div>
+    <form id="chatForm" class="chat-form">
+        @Html.AntiForgeryToken()
+        <input id="chatInput" maxlength="500" placeholder="Bir soru yaz…" autocomplete="off" required>
+        <button type="submit" id="chatSend">Gönder</button>
+    </form>
+</div>
+
+<style>
+    .chat-toggle {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 1050;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        border: 0;
+        background: #8b7bff;
+        color: #fff;
+        font-size: 1.4rem;
+        box-shadow: 0 6px 20px rgba(0,0,0,.4);
+        cursor: pointer
+    }
+
+    .chat-panel {
+        position: fixed;
+        right: 20px;
+        bottom: 90px;
+        z-index: 1050;
+        width: min(360px,calc(100vw - 40px));
+        height: min(480px,calc(100vh - 130px));
+        display: flex;
+        flex-direction: column;
+        background: #141826;
+        color: #e8ecf5;
+        border: 1px solid rgba(255,255,255,.15);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 12px 40px rgba(0,0,0,.5)
+    }
+
+        .chat-panel[hidden] {
+            display: none
+        }
+
+    .chat-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(255,255,255,.12)
+    }
+
+        .chat-head button {
+            background: none;
+            border: 0;
+            color: inherit;
+            cursor: pointer
+        }
+
+    .chat-log {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px
+    }
+
+    .chat-msg {
+        max-width: 85%;
+        padding: 9px 12px;
+        border-radius: 12px;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: .93rem;
+        line-height: 1.45
+    }
+
+        .chat-msg.bot {
+            background: rgba(255,255,255,.08);
+            align-self: flex-start
+        }
+
+        .chat-msg.user {
+            background: #8b7bff;
+            color: #fff;
+            align-self: flex-end
+        }
+
+    .chat-form {
+        display: flex;
+        gap: 8px;
+        padding: 10px;
+        border-top: 1px solid rgba(255,255,255,.12)
+    }
+
+        .chat-form input {
+            flex: 1;
+            min-width: 0;
+            padding: 9px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,.2);
+            background: rgba(255,255,255,.06);
+            color: inherit;
+            font: inherit
+        }
+
+        .chat-form button {
+            border: 0;
+            border-radius: 10px;
+            padding: 0 14px;
+            background: #8b7bff;
+            color: #fff;
+            cursor: pointer
+        }
+
+            .chat-form button:disabled {
+                opacity: .5;
+                cursor: default
+            }
+
+    .chat-note {
+        font-size: .72rem;
+        opacity: .6;
+        padding: 0 12px 8px
+    }
+</style>
+
+<script>
+    (function () {
+        var panel = document.getElementById('chatPanel'), log = document.getElementById('chatLog'),
+            form = document.getElementById('chatForm'), input = document.getElementById('chatInput'),
+            send = document.getElementById('chatSend'), history = [];
+
+        function open(v) { panel.hidden = !v; if (v) input.focus(); }
+        document.getElementById('chatToggle').onclick = function () { open(panel.hidden); };
+        document.getElementById('chatClose').onclick = function () { open(false); };
+
+        function add(role, text) {
+            var d = document.createElement('div');
+            d.className = 'chat-msg ' + (role === 'user' ? 'user' : 'bot');
+            d.textContent = text;
+            log.appendChild(d); log.scrollTop = log.scrollHeight;
+            return d;
+        }
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var text = input.value.trim(); if (!text) return;
+            input.value = ''; send.disabled = true;
+            add('user', text); history.push({ role: 'user', content: text });
+            var wait = add('bot', 'Yazıyor…');
+
+            try {
+                var token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+                var res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ messages: history })
+                });
+                var data = await res.json().catch(function () { return {}; });
+                if (!res.ok) throw new Error(data.error || (res.status === 429 ? 'Çok hızlı yazıyorsun, biraz bekle.' : 'Bir hata oluştu.'));
+                wait.textContent = data.reply;
+                history.push({ role: 'assistant', content: data.reply });
+            } catch (err) {
+                wait.textContent = err.message;
+                history.pop();
+            }
+            send.disabled = false; input.focus();
+        });
+    })();
+</script>

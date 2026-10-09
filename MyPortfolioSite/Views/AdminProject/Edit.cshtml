@@ -1,0 +1,47 @@
+﻿@model MyPortfolioSite.Models.ProjectOverride
+@{
+    Layout = null; ViewData["Title"] = "Düzenle";
+    var gh = (MyPortfolioSite.Models.Project)ViewBag.Project;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <partial name="_Background" />
+    <partial name="_AdminNav" />
+    <div class="container admin-wrap" style="max-width:720px">
+        <a asp-action="Index" class="back-link">‹ Projeler</a>
+        <h1 class="h3 my-3">@gh.Name</h1>
+        <p class="small opacity-75">Boş bıraktığın alanlarda GitHub'daki değer görünür.</p>
+
+        <form method="post" asp-action="Edit" asp-route-name="@Model.RepoName" class="contact-form" style="max-width:none">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="contact-alert err">
+                    @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@e.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <label>Başlık<input asp-for="Title" placeholder="@gh.Name" maxlength="120"></label>
+            <label>Açıklama<textarea asp-for="Description" rows="3" placeholder="@gh.Description" maxlength="1000"></textarea></label>
+            <label>Kapak görseli adresi<input asp-for="CoverUrl" placeholder="https://..."></label>
+            <label>Canlı demo adresi<input asp-for="DemoUrl" placeholder="@gh.Homepage"></label>
+            <label>Ek görseller (her satıra bir adres)<textarea asp-for="ExtraImages" rows="4" placeholder="https://..."></textarea></label>
+            <label>Sıra (küçük olan önce gelir)<input asp-for="SortOrder" type="number"></label>
+            <label class="check-row"><input asp-for="IsFeatured" type="checkbox"> Öne çıkar</label>
+            <label class="check-row"><input asp-for="IsHidden" type="checkbox"> Sitede gizle</label>
+
+            <button type="submit" class="btn btn-accent btn-pill">Kaydet</button>
+        </form>
+
+        <form method="post" asp-action="Reset" asp-route-name="@Model.RepoName" class="mt-3">
+            <button type="submit" class="btn btn-outline-light btn-sm">GitHub değerlerine dön</button>
+        </form>
+    </div>
+</body>
+</html>

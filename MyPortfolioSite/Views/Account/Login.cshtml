@@ -1,0 +1,26 @@
+﻿@{
+    Layout = null; ViewData["Title"] = "Giriş";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <partial name="_Head" />
+</head>
+<body>
+    <partial name="_Background" />
+    <div class="container admin-wrap" style="max-width:420px">
+        <h1 class="h3 mb-3">Yönetici girişi</h1>
+        @if (ViewBag.Error is string e)
+        {
+            <div class="contact-alert err">@e</div>
+        }
+        <form method="post" class="contact-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl">
+            <input name="username" placeholder="Kullanıcı adı" autocomplete="username" required>
+            <input name="password" type="password" placeholder="Şifre" autocomplete="current-password" required>
+            <button type="submit" class="btn btn-accent btn-pill">Giriş yap</button>
+        </form>
+    </div>
+</body>
+</html>
