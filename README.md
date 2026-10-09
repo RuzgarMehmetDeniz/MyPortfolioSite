@@ -59,3 +59,4 @@ Arayüz açık renkli, sade ve modern bir tasarıma sahip. Ana renk indigo/mor t
 ## <img width="1817" height="906" alt="image" src="https://github.com/user-attachments/assets/4659c18a-710d-43d0-b4d8-94c763fabbdb" />
 ## <img width="1807" height="748" alt="image" src="https://github.com/user-attachments/assets/995d0ff6-695c-4b0a-983e-f3b00890b6b3" />
 ## <img width="1899" height="911" alt="image" src="https://github.com/user-attachments/assets/26115908-2572-4ede-99b4-e3b4e2326f70" />
+## <img width="426" height="646" alt="image" src="https://github.com/user-attachments/assets/f8e24719-ddbe-468d-b4c4-6e387ce71ec8" />
