@@ -1,6 +1,6 @@
 # MyPortfolioSite
 
-Kişisel portfolyo sitem. GitHub hesabımdaki (`RuzgarMehmetDeniz`) projeleri otomatik çekip kart olarak gösterir. Yeni bir repo açtığımda siteye kendiliğinden eklenir.
+Kişisel portfolyo sitem. GitHub hesabımdaki projeleri otomatik çekip kart olarak gösterir. Yeni bir repo açtığımda siteye kendiliğinden eklenir.
 
 🔗 **Canlı site:** [ruzgardeniz.runasp.net](https://ruzgardeniz.runasp.net/)
 
