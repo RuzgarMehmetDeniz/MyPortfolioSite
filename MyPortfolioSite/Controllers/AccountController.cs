@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace MyPortfolioSite.Controllers
 {
     [Route("yonetim")]
+
     public class AccountController : Controller
     {
         private readonly IConfiguration _cfg;
